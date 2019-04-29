@@ -1,0 +1,7 @@
+Things to do: 
+
+- Clean the data by removing all of the instances that do not have a label 
+- Seperate the data into: 
+ - Train 
+ - Test
+ - Ground Truth for the Test data 

@@ -8,10 +8,9 @@ from sklearn.preprocessing import MultiLabelBinarizer
 df = pd.read_csv("train.csv", header=0)
 train, validation = train_test_split(df, train_size = 0.7, random_state = 42)
 genres = train["GenreCorrected"].str.split('|').values
-multi_binarizer = MultiLabelBinarizer(sparse_output=True)
-print(genres)
+multi_binarizer = MultiLabelBinarizer(sparse_output= False)
+
 labels = multi_binarizer.fit_transform(genres)
-print(labels.shape)
 
 plot_train = train["Plot"]
 plot_validation = validation["Plot"]
@@ -20,12 +19,11 @@ vec = TfidfVectorizer(stop_words="english")
 train_plot = vec.fit_transform(plot_train)
 validation_plot = vec.transform(plot_train)
 
-
-KNNclf = KNeighborsClassifier(n_neighbors=3)
+KNNclf = KNeighborsClassifier(n_neighbors=3, metric= "cosine", weights = "distance")
 KNNclf.fit(train_plot, labels)
-predictions = KNNclf.predict(validation_plot[0])
-print(predictions.shape, predictions[0])
+predictions = KNNclf.predict(validation_plot[0:10])
+print(predictions.shape, predictions)
 predictions = multi_binarizer.inverse_transform(predictions)
-
+print(predictions)
 
 

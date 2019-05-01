@@ -84,7 +84,7 @@ movies['GenreCorrected']=movies['GenreCorrected'].str.replace("yogesh dattatraya
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace("war-time","war")
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace("wartime","war")
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace("ww1","war")
-#movies['GenreCorrected']=movies['GenreCorrected'].str.replace('unknown','')
+movies['GenreCorrected']=movies['GenreCorrected'].str.replace('unknown','')
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace("wwii","war")
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace('psychological','psycho')
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace('rom-coms','romance')
@@ -123,9 +123,9 @@ filterE = movies['GenreCorrected']=="music"
 movies.loc[filterE,'GenreCorrected']="musical"
 filterE = movies['GenreCorrected']=="-"
 movies.loc[filterE,'GenreCorrected']=''
-filterE = movies['GenreCorrected']=="comedy–drama"
+filterE = movies['GenreCorrected']=="comedy-drama"
 movies.loc[filterE,'GenreCorrected'] = "comedy|drama"
-filterE = movies['GenreCorrected']=="comedy–horror"
+filterE = movies['GenreCorrected']=="comedy-horror"
 movies.loc[filterE,'GenreCorrected'] = "comedy|horror"
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace(' ','|')
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace(',','|')
@@ -229,18 +229,18 @@ movies['GenreCorrected']=movies['GenreCorrected'].str.replace('samurai','martial
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace('tv_miniseries','series')
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace('serial','series')
 
-filterE = movies['GenreCorrected']=="musical–comedy"
+filterE = movies['GenreCorrected']=="musical-comedy"
 movies.loc[filterE,'GenreCorrected'] = "musical|comedy"
 
 filterE = movies['GenreCorrected']=="roman|porno"
 movies.loc[filterE,'GenreCorrected'] = "adult"
 
 
-filterE = movies['GenreCorrected']=="action—masala"
+filterE = movies['GenreCorrected']=="action-masala"
 movies.loc[filterE,'GenreCorrected'] = "action|masala"
 
 
-filterE = movies['GenreCorrected']=="horror–thriller"
+filterE = movies['GenreCorrected']=="horror-thriller"
 movies.loc[filterE,'GenreCorrected'] = "horror|thriller"
 
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace('family','children')
@@ -261,10 +261,11 @@ movies['GenreCorrected']=movies['GenreCorrected'].str.replace('suspense','action
 filterE = movies['GenreCorrected']=="drama|romance|adult|children"
 movies.loc[filterE,'GenreCorrected'] = "drama|romance|adult"
 
-movies['GenreCorrected']=movies['GenreCorrected'].str.replace('\|–\|','|')
+movies['GenreCorrected']=movies['GenreCorrected'].str.replace('\|-\|','|')
 movies['GenreCorrected']=movies['GenreCorrected'].str.strip(to_strip='\|')
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace('actionner','action')
 movies['GenreCorrected']=movies['GenreCorrected'].str.strip()
 
+movies['GenreCorrected']=movies['GenreCorrected'].str.replace('','unknown')
 
 movies.to_csv("updated_movie_data.csv", index = False)

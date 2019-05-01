@@ -7,7 +7,7 @@ import pandas
 # remove the instances that do not have a label 
 raw_data = pandas.read_csv("updated_movie_data.csv")
 
-clean_data = raw_data[raw_data.GenreCorrected != "unknown"]
+clean_data = raw_data[raw_data.GenreCorrected != ""]
 clean_data.to_csv("clean.csv", index=False)
 
 

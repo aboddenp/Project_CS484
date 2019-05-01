@@ -267,4 +267,4 @@ movies['GenreCorrected']=movies['GenreCorrected'].str.replace('actionner','actio
 movies['GenreCorrected']=movies['GenreCorrected'].str.strip()
 
 
-movies.to_csv("updated_movie_data.csv")
+movies.to_csv("updated_movie_data.csv", index = False)

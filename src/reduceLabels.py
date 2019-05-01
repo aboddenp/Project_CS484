@@ -266,6 +266,6 @@ movies['GenreCorrected']=movies['GenreCorrected'].str.strip(to_strip='\|')
 movies['GenreCorrected']=movies['GenreCorrected'].str.replace('actionner','action')
 movies['GenreCorrected']=movies['GenreCorrected'].str.strip()
 
-movies['GenreCorrected']=movies['GenreCorrected'].str.replace('','unknown')
+#movies['GenreCorrected']=movies['GenreCorrected'].str.replace('','unknown')
 
 movies.to_csv("updated_movie_data.csv", index = False)

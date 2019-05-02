@@ -7,7 +7,10 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import f1_score 
 from nltk.stem.porter import PorterStemmer
 from sklearn.decomposition import TruncatedSVD
+from sklearn.metrics import hamming_loss  # more forgiving metric its special for multilabel or multiclass problems 
+from sklearn.metrics import accuracy_score
 import re
+
 
 # global fields 
 stemmer = PorterStemmer()
@@ -44,18 +47,22 @@ train_plot = vec.fit_transform(plot_train)
 validation_plot = vec.transform(plot_validation)
 
 # feature selection 
-pca = TruncatedSVD(n_components = 256, random_state=42)
+pca = TruncatedSVD(n_components = 100, random_state=42)
 train_plot = pca.fit_transform(train_plot)
 validation_plot = pca.transform(validation_plot)
 
 # classify 
-KNNclf = KNeighborsClassifier(n_neighbors=2, metric= "cosine", weights = "distance")
+KNNclf = KNeighborsClassifier(n_neighbors=1, metric= "cosine", weights = "distance")
 KNNclf.fit(train_plot, labels)
 predictions = KNNclf.predict(validation_plot)
  
 # print the f1 score 
 
-score = f1_score(validation_labels,predictions,average = "samples")
+score = f1_score(validation_labels,predictions, average = 'weighted')
+hamm = hamming_loss(validation_labels,predictions)
+accuracy = accuracy_score(validation_labels,predictions)
 print(score)
+print(str(hamm) + " hamming loss ")
+print(str(accuracy))
 
 predictions = multi_binarizer.inverse_transform(predictions)

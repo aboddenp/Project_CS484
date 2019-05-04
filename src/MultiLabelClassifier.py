@@ -12,7 +12,8 @@ from nltk.stem.porter import PorterStemmer
 from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics import hamming_loss  # more forgiving metric its special for multilabel or multiclass problems 
 from sklearn.metrics import accuracy_score
-
+from skmultilearn.adapt import BRkNNaClassifier
+from sklearn.model_selection import GridSearchCV
 import re
 
 
@@ -43,9 +44,7 @@ def binarizeLabels(train_labels, test_lables ):
 def knn(data,labels,test, k = 1 , met = "cosine", wei = "distance", tfid = False, reduct = True):
 	if(tfid):
 		# # make vector document with inverse frequency 
-		vec = TfidfVectorizer(stop_words="english") # add tokenizer = tokenize makes the vectorizer too slow 
-		data = vec.fit_transform(data)
-		test = vec.transform(test)
+		data, test = documentMatrix(data,test)
 		if(reduct):
 			data, test = dimReduction(data,test, n = 100)
 
@@ -53,6 +52,22 @@ def knn(data,labels,test, k = 1 , met = "cosine", wei = "distance", tfid = False
 	KNNclf = KNeighborsClassifier(n_neighbors= k , metric= met , weights = wei)
 	KNNclf.fit(data, labels)
 	predictions = KNNclf.predict(test)
+	return predictions
+
+# binary relevance classifier each label is decided only if more than half of the neighbors have that label 
+def binaryRelevance(data,labels,test, k = 1 , tfid = False, reduct = True):
+	if(tfid):
+		# # make vector document with inverse frequency 
+		data, test = documentMatrix(data,test)
+		if(reduct):
+			data, test = dimReduction(data,test, n = 100)
+
+	# classify 
+	parameters = {'k': range(k,k+1)}
+
+	knn = GridSearchCV(BRkNNaClassifier(), parameters, scoring= "f1_macro", cv = 3) # grid search selects the best k value 
+	knn.fit(data, labels)
+	predictions = knn.predict(test)
 	return predictions
 
 def dTree(data, labels, test, inpurity = "Gini", mdepth = None): 
@@ -77,6 +92,15 @@ def  evaluate(ground_truth, predictions):
 	accuracy = accuracy_score(ground_truth,predictions)
 	return score, hamm ,accuracy
 
+def documentMatrix(train_docs, test_docs):
+	# make vector document with inverse frequency 
+	vec = TfidfVectorizer(stop_words="english") # add tokenizer = tokenize makes the vectorizer too slow 
+	data = vec.fit_transform(train_docs) 
+	test = vec.transform(test_docs)
+	return data, test 
+
+
+
 
 df = pd.read_csv("train.csv", header=0)
 df["Cast"] = df["Cast"].fillna("None")
@@ -89,15 +113,17 @@ validation_genres = validation["GenreCorrected"]
 
 genres, validation_genres = binarizeLabels(genres,validation_genres)
 
-print(train.shape)
+
+predictions = binaryRelevance(train["Plot"],genres, validation["Plot"],tfid = True)
+print(evaluate(predictions,validation_genres))
 
 # requieres converting the values into numerical 
 #predictions = dTree(train[["Release Year", "Title", "Origin/Ethnicity","Director"]], genres, validation[["Release Year", "Title", "Origin/Ethnicity", "Director"] ])
 #print(evaluate(predictions, validation_genres))
-predictions = knn(train["Cast"],genres,validation["Cast"],k = 3, tfid = True)
-print(evaluate(predictions, validation_genres))
-predictions = knn(train["Plot"],genres,validation["Plot"],k = 3, tfid = True)
-print(evaluate(predictions, validation_genres))
+#predictions = knn(train["Cast"],genres,validation["Cast"],k = 3, tfid = True)
+#print(evaluate(predictions, validation_genres))
+#predictions = knn(train["Plot"],genres,validation["Plot"],k = 3, tfid = True)
+#print(evaluate(predictions, validation_genres))
 
 # multi_binarizer = MultiLabelBinarizer(sparse_output= False)
 # labels = multi_binarizer.fit_transform(genres)

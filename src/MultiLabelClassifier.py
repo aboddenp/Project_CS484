@@ -26,11 +26,11 @@ multi_binarizer = MultiLabelBinarizer(sparse_output= False)
 
 # tokenize and stem the plots 
 def tokenize(plot):
-    plot = re.sub(r"[^A-Za-z0-9\-]", " ", plot)
-    plot = plot.lower()
-    plot = plot.split(" ")
-    plot = [stemmer.stem(word) for word in plot]
-    return plot
+	plot = re.sub(r"[^A-Za-z0-9\-]", " ", plot)
+	plot = plot.lower()
+	plot = plot.split(" ")
+	plot = [stemmer.stem(word) for word in plot]
+	return plot
 
 
 # returns the binarized labels for both the train and test data 
@@ -97,9 +97,45 @@ def documentMatrix(train_docs, test_docs):
 	vec = TfidfVectorizer(stop_words="english") # add tokenizer = tokenize makes the vectorizer too slow 
 	data = vec.fit_transform(train_docs) 
 	test = vec.transform(test_docs)
-	return data, test 
+	return data, test
 
+# predictions is a list of predictions from different classifiers : [predictionKNN, PredictionBR, predictionDT]
+# w is the weight to give to the votes made by the classifier 
+def voting(predictions, w = None ):
+	if(w == None ):
+		w = [1]*len(predictions)
 
+	num_predictions = len(predictions[0])
+	num_labels = len(predictions[0][0])
+	final_predictions = [] 
+
+	# This loops adds the predictions of all classifiers and stores them in final predictions 
+	# example
+		#	predictions = [[[1, 0],[1,1]],[[0,1],[0,0]]] the final prediction of no weight is given is [[1,1],[0,1]] 
+	for i in range(num_predictions): 
+		voting = [0] * num_labels # combined predictions of movie i 
+
+		# get all of the predictions for movie i 
+		for c in range(len(predictions)): 
+			classifier = predictions[c]
+			clf_prediction = classifier[i] 
+			for j in range(len(clf_prediction)): 
+				label = clf_prediction[j]
+				voting[j] += label * w[c]
+		final_predictions.append(voting) 
+
+	min_vote = max(w)/2 	# threshold to consider as final label still don't know what is the best threshold 
+	# min_vote = len(predictions)/2 
+
+	# set labels that are greater to the threshold as 1
+	for prediction in final_predictions: 
+		for i in range(num_labels): 
+			vote = prediction[i] 
+			if (vote >= min_vote): 
+				prediction[i] = 1 
+			else: 
+				prediction[i] = 0
+	return np.array(final_predictions)
 
 
 df = pd.read_csv("train.csv", header=0)
@@ -114,16 +150,17 @@ validation_genres = validation["GenreCorrected"]
 genres, validation_genres = binarizeLabels(genres,validation_genres)
 
 
-predictions = binaryRelevance(train["Plot"],genres, validation["Plot"],tfid = True)
-print(evaluate(predictions,validation_genres))
+#predictions = binaryRelevance(train["Plot"],genres, validation["Plot"],tfid = True)
+#print(evaluate(predictions,validation_genres))
 
 # requieres converting the values into numerical 
 #predictions = dTree(train[["Release Year", "Title", "Origin/Ethnicity","Director"]], genres, validation[["Release Year", "Title", "Origin/Ethnicity", "Director"] ])
 #print(evaluate(predictions, validation_genres))
-#predictions = knn(train["Cast"],genres,validation["Cast"],k = 3, tfid = True)
+predictions_cast = knn(train["Cast"],genres,validation["Cast"],k = 3, tfid = True)
 #print(evaluate(predictions, validation_genres))
-#predictions = knn(train["Plot"],genres,validation["Plot"],k = 3, tfid = True)
-#print(evaluate(predictions, validation_genres))
+predictions_plot = knn(train["Plot"],genres,validation["Plot"],k = 3, tfid = True)
+combined_prediction = voting([predictions_plot, predictions_cast],[0.5,0,1])
+print(evaluate(combined_prediction, validation_genres))
 
 # multi_binarizer = MultiLabelBinarizer(sparse_output= False)
 # labels = multi_binarizer.fit_transform(genres)

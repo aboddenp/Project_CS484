@@ -66,7 +66,7 @@ def binaryRelevance(data,labels,test, k = 1 , tfid = False, reduct = True):
 	# classify 
 	parameters = {'k': range(k,k+1)}
 
-	knn = GridSearchCV(BRkNNaClassifier(), parameters, scoring= "f1_macro", cv = 3) # grid search selects the best k value 
+	knn = BRkNNaClassifier(k=1) # grid search selects the best k value 
 	knn.fit(data, labels)
 	predictions = knn.predict(test)
 	return predictions
@@ -132,8 +132,7 @@ def voting(predictions, w = None ):
 				label = clf_prediction[j]
 				voting[j] += label * w[c]
 		final_predictions.append(voting) 
-
-	min_vote = max(w)/2 	# threshold to consider as final label still don't know what is the best threshold 
+	min_vote = max(w)*1.0/2 	# threshold to consider as final label still don't know what is the best threshold 
 	# min_vote = len(predictions)/2 
 
 	# set labels that are greater to the threshold as 1
@@ -159,17 +158,23 @@ validation_genres = validation["GenreCorrected"]
 genres, validation_genres = binarizeLabels(genres,validation_genres)
 
 
-#predictions = binaryRelevance(train["Plot"],genres, validation["Plot"],tfid = True)
-#print(evaluate(predictions,validation_genres))
+predictions = binaryRelevance(train["plot_stemmed"],genres, validation["plot_stemmed"],tfid = True)
+print("binary relevance", evaluate(predictions,validation_genres))
 
 # requieres converting the values into numerical 
 predictions_tree = dTree(train[["Release Year", "Title", "Origin/Ethnicity","Director"]], genres, validation[["Release Year", "Title", "Origin/Ethnicity", "Director"] ])
+print("tree", evaluate(predictions_tree, validation_genres))
 #print(evaluate(predictions, validation_genres))
-predictions_cast = knn(train["Cast"],genres,validation["Cast"],k = 3, tfid = True)
+predictions_cast = knn(train["Cast"],genres,validation["Cast"],k = 1, tfid = True)
+print("cast", evaluate(predictions_cast, validation_genres))
 #print(evaluate(predictions, validation_genres))
-predictions_plot = knn(train["Plot"],genres,validation["Plot"],k = 3, tfid = True)
-combined_prediction = voting([predictions_plot, predictions_cast, predictions_tree],[0,0,1])
-print(evaluate(combined_prediction, validation_genres))
+predictions_plot = knn(train["plot_stemmed"],genres,validation["plot_stemmed"],k = 1, tfid = True)
+print("plot", evaluate(predictions_plot, validation_genres))
+combined_prediction = voting([predictions_plot, predictions_cast, predictions_tree],[0.5,0.2,0.2])
+print("combined", evaluate(combined_prediction, validation_genres))
+print("plot",multi_binarizer.inverse_transform(predictions_plot[:10]))
+print("combined",multi_binarizer.inverse_transform(combined_prediction[:10]))
+# predictions = multi_binarizer.inverse_transform(predictions)
 
 # multi_binarizer = MultiLabelBinarizer(sparse_output= False)
 # labels = multi_binarizer.fit_transform(genres)

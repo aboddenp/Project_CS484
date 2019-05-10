@@ -7,6 +7,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import f1_score 
 from nltk.stem.porter import PorterStemmer
 from sklearn.decomposition import TruncatedSVD
@@ -71,9 +72,17 @@ def binaryRelevance(data,labels,test, k = 1 , tfid = False, reduct = True):
 	return predictions
 
 def dTree(data, labels, test, inpurity = "Gini", mdepth = None): 
+         newData = pd.DataFrame()
+         newTest = pd.DataFrame()
+         for datum in data:
+                 le = LabelEncoder()
+                 newData[datum] = le.fit_transform(data[datum])
+         for testItem in test:
+                 le = LabelEncoder()
+                 newTest[testItem] = le.fit_transform(test[testItem])
 	 tree = DecisionTreeClassifier(max_depth = mdepth , random_state=42 )
-	 tree.fit(data,labels)
-	 return tree.predict(test)
+	 tree.fit(newData,labels)
+	 return tree.predict(newTest)
 
 
 # returns reduced data given n as number of components and method as the reduction algorithm 
@@ -154,12 +163,12 @@ genres, validation_genres = binarizeLabels(genres,validation_genres)
 #print(evaluate(predictions,validation_genres))
 
 # requieres converting the values into numerical 
-#predictions = dTree(train[["Release Year", "Title", "Origin/Ethnicity","Director"]], genres, validation[["Release Year", "Title", "Origin/Ethnicity", "Director"] ])
+predictions_tree = dTree(train[["Release Year", "Title", "Origin/Ethnicity","Director"]], genres, validation[["Release Year", "Title", "Origin/Ethnicity", "Director"] ])
 #print(evaluate(predictions, validation_genres))
 predictions_cast = knn(train["Cast"],genres,validation["Cast"],k = 3, tfid = True)
 #print(evaluate(predictions, validation_genres))
 predictions_plot = knn(train["Plot"],genres,validation["Plot"],k = 3, tfid = True)
-combined_prediction = voting([predictions_plot, predictions_cast],[0.5,0,1])
+combined_prediction = voting([predictions_plot, predictions_cast, predictions_tree],[0,0,1])
 print(evaluate(combined_prediction, validation_genres))
 
 # multi_binarizer = MultiLabelBinarizer(sparse_output= False)

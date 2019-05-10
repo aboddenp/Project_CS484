@@ -1,5 +1,5 @@
-#authors Aster Bodden and Naassom Rocha 
-# This source code is responsible for splitting the data into Train and Test and its corresponding ground truth 
+#authors Aster Bodden and Naassom Rocha  
+# This source code is responsible for splitting the data into Train and Test and its corresponding Ground Truth 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import pandas 

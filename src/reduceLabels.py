@@ -1,3 +1,7 @@
+#author: Amine Jallouli
+# modified by Aster Bodden and Naasom Rocha 
+# check out his version for solving this classifier problem 
+
 import pandas as pd 
 
 movies = pd.read_csv("wiki_movie_plots_deduped.csv")

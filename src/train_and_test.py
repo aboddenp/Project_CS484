@@ -7,9 +7,12 @@ import pandas as pd
 # remove the instances that do not have a label 
 raw_data = pd.read_csv("updated_movie_data.csv")
 
-clean_data = raw_data.dropna(subset = ["GenreCorrected"])[:10000]
-clean_data = clean_data.groupby("GenreCorrected").filter(lambda x: len(x) > 5)
-
+clean_data = raw_data.dropna(subset = ["GenreCorrected"]).sample(frac=1)
+print(clean_data.shape)
+print(clean_data.groupby("GenreCorrected").count())
+clean_data = clean_data.groupby("GenreCorrected").filter(lambda x: len(x) > 100)
+print(clean_data.shape)
+print(clean_data.groupby("GenreCorrected").count())
 clean_data = clean_data.drop(columns=["Genre", "Wiki Page"])
 clean_data.to_csv("clean.csv", index=False)
 

@@ -3,6 +3,9 @@ import pandas as pd
 # classifiers 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import ExtraTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import BernoulliNB
 #######################################################
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
@@ -11,6 +14,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import f1_score 
 from nltk.stem.porter import PorterStemmer
 from sklearn.decomposition import TruncatedSVD
+from sklearn.decomposition import PCA
 from sklearn.metrics import hamming_loss  # more forgiving metric its special for multilabel or multiclass problems 
 from sklearn.metrics import accuracy_score
 from skmultilearn.adapt import BRkNNaClassifier
@@ -62,27 +66,35 @@ def binaryRelevance(data,labels,test, k = 1 , tfid = False, reduct = True):
 		data, test = documentMatrix(data,test)
 		if(reduct):
 			data, test = dimReduction(data,test, n = 100)
-
 	# classify 
 	parameters = {'k': range(k,k+1)}
-
 	knn = BRkNNaClassifier(k=1) # grid search selects the best k value 
 	knn.fit(data, labels)
 	predictions = knn.predict(test)
 	return predictions
 
-def dTree(data, labels, test, inpurity = "Gini", mdepth = None): 
+def dTree(data, labels, test, impurity = "gini", mdepth = None): 
          newData = pd.DataFrame()
          newTest = pd.DataFrame()
+         le = LabelEncoder()
          for datum in data:
-                 le = LabelEncoder()
                  newData[datum] = le.fit_transform(data[datum])
          for testItem in test:
-                 le = LabelEncoder()
                  newTest[testItem] = le.fit_transform(test[testItem])
-	 tree = DecisionTreeClassifier(max_depth = mdepth , random_state=42 )
-	 tree.fit(newData,labels)
-	 return tree.predict(newTest)
+	 tree1 = DecisionTreeClassifier(criterion=impurity,max_depth = mdepth , random_state=42)
+	 tree2 = ExtraTreeClassifier(criterion=impurity,max_depth = mdepth , random_state=42)
+	 tree3 = RandomForestClassifier(criterion=impurity,max_depth = mdepth , random_state=42)
+	 tree1.fit(newData,labels)
+	 tree2.fit(newData,labels)
+	 tree3.fit(newData,labels)
+         predict1 = tree1.predict(newTest)
+         print("tree1", evaluate(predict1, validation_genres))
+         predict2 = tree2.predict(newTest)
+         print("tree2", evaluate(predict2, validation_genres))
+         predict3 = tree3.predict(newTest)
+         print("tree3", evaluate(predict3, validation_genres))
+         combined_prediction = voting([predict1,predict2,predict3],[1,1,1])
+	 return combined_prediction
 
 
 # returns reduced data given n as number of components and method as the reduction algorithm 
@@ -132,7 +144,7 @@ def voting(predictions, w = None ):
 				label = clf_prediction[j]
 				voting[j] += label * w[c]
 		final_predictions.append(voting) 
-	min_vote = max(w)*1.0/2 	# threshold to consider as final label still don't know what is the best threshold 
+	min_vote = sum(w)*0.5	# threshold to consider as final label still don't know what is the best threshold 
 	# min_vote = len(predictions)/2 
 
 	# set labels that are greater to the threshold as 1
@@ -158,22 +170,20 @@ validation_genres = validation["GenreCorrected"]
 genres, validation_genres = binarizeLabels(genres,validation_genres)
 
 
-predictions = binaryRelevance(train["plot_stemmed"],genres, validation["plot_stemmed"],tfid = True)
-print("binary relevance", evaluate(predictions,validation_genres))
+predictions_binary = np.asarray(binaryRelevance(train["plot_stemmed"],genres, validation["plot_stemmed"],tfid = True).todense())
+print("binary relevance", evaluate(predictions_binary,validation_genres))
 
 # requieres converting the values into numerical 
-predictions_tree = dTree(train[["Release Year", "Title", "Origin/Ethnicity","Director"]], genres, validation[["Release Year", "Title", "Origin/Ethnicity", "Director"] ])
+predictions_tree = dTree(train[["Release Year","Director","Origin/Ethnicity"]], genres, validation[["Release Year", "Director", "Origin/Ethnicity"]])
 print("tree", evaluate(predictions_tree, validation_genres))
 #print(evaluate(predictions, validation_genres))
-predictions_cast = knn(train["Cast"],genres,validation["Cast"],k = 1, tfid = True)
+predictions_cast = knn(train["Cast"],genres,validation["Cast"],k = 3, tfid = True,reduct=False)
 print("cast", evaluate(predictions_cast, validation_genres))
 #print(evaluate(predictions, validation_genres))
-predictions_plot = knn(train["plot_stemmed"],genres,validation["plot_stemmed"],k = 1, tfid = True)
+predictions_plot = knn(train["plot_stemmed"],genres,validation["plot_stemmed"],k = 3, tfid = True)
 print("plot", evaluate(predictions_plot, validation_genres))
-combined_prediction = voting([predictions_plot, predictions_cast, predictions_tree],[0.5,0.2,0.2])
+combined_prediction = voting([predictions_plot, predictions_cast, predictions_tree,predictions_binary],[2,3,1,2])
 print("combined", evaluate(combined_prediction, validation_genres))
-print("plot",multi_binarizer.inverse_transform(predictions_plot[:10]))
-print("combined",multi_binarizer.inverse_transform(combined_prediction[:10]))
 # predictions = multi_binarizer.inverse_transform(predictions)
 
 # multi_binarizer = MultiLabelBinarizer(sparse_output= False)

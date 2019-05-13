@@ -1,0 +1,7 @@
+@inproceedings{EleftheriosSpyromitros2008,
+   author = {Eleftherios Spyromitros, Grigorios Tsoumakas, Ioannis Vlahavas},
+   booktitle = {Proc. 5th Hellenic Conference on Artificial Intelligence (SETN 2008)},
+   title = {An Empirical Study of Lazy Multilabel Classification Algorithms},
+   year = {2008},
+   location = {Syros, Greece}
+}

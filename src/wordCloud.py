@@ -20,10 +20,11 @@ for i in range(len(genres)):
 	strings += '\"' + str(value)+ '\"'  + " " 
 
 
-moviePlot = plots.values[0] # we can use this to make clouds of the plots 
+
+moviePlot = plots.values[900] # we can use this to make clouds of the plots 
 print(strings)
 
-wordcloud = WordCloud(background_color = "white").generate("bob-ross joe mom msad")
+wordcloud = WordCloud(background_color = "white").generate(moviePlot)
 
 plt.imshow(wordcloud,interpolation = 'bilinear')
 plt.axis("off")

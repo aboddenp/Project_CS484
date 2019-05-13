@@ -1,7 +1,7 @@
-#SOURCE CODE: 
+# SOURCE CODE: 
 MultiLabelClassifier: Main Program 
 
-#PREPROCESSING: 
+# PREPROCESSING: 
 Plot_stemmer: 
 stems the movie plot information 
 reduceLables: 
@@ -9,7 +9,7 @@ uses Replacements from Kaggle to reduce the number of labels//
 train_and_test: 
 converts raw kaggle data into train and test where all instances have a genre 
 
-#Data: 
+# Data: 
 wiki_movie_plots_deduped: raw data
 updated_movie_data: reduced label applied 
 train: data to use to train model 
@@ -19,7 +19,7 @@ clean: extra preprocessed data
 
 results: Evaluation results of the MultiLabelClassifier Model 
 
-#Libraries needed: 
+# Libraries needed: 
 	scikit learn 
 	Numpy 
 	Pandas 

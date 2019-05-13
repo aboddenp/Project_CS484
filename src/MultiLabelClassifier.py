@@ -21,6 +21,9 @@ from skmultilearn.adapt import BRkNNaClassifier
 from sklearn.model_selection import GridSearchCV
 import re
 
+# warnings are suppresed for better result reading 
+import warnings
+warnings.filterwarnings("ignore")
 
 # global fields 
 stemmer = PorterStemmer()
@@ -74,27 +77,27 @@ def binaryRelevance(data,labels,test, k = 1 , tfid = False, reduct = True):
 	return predictions
 
 def dTree(data, labels, test, impurity = "gini", mdepth = None): 
-         newData = pd.DataFrame()
-         newTest = pd.DataFrame()
-         le = LabelEncoder()
-         for datum in data:
-                 newData[datum] = le.fit_transform(data[datum])
-         for testItem in test:
-                 newTest[testItem] = le.fit_transform(test[testItem])
-	 tree1 = DecisionTreeClassifier(criterion=impurity,max_depth = mdepth , random_state=42)
-	 tree2 = ExtraTreeClassifier(criterion=impurity,max_depth = mdepth , random_state=42)
-	 tree3 = RandomForestClassifier(criterion=impurity,max_depth = mdepth , random_state=42)
-	 tree1.fit(newData,labels)
-	 tree2.fit(newData,labels)
-	 tree3.fit(newData,labels)
-         predict1 = tree1.predict(newTest)
-         print("tree1", evaluate(predict1, validation_genres))
-         predict2 = tree2.predict(newTest)
-         print("tree2", evaluate(predict2, validation_genres))
-         predict3 = tree3.predict(newTest)
-         print("tree3", evaluate(predict3, validation_genres))
-         combined_prediction = voting([predict1,predict2,predict3],[1,1,1])
-	 return combined_prediction
+	newData = pd.DataFrame()
+	newTest = pd.DataFrame()
+	le = LabelEncoder()
+	for datum in data:
+		newData[datum] = le.fit_transform(data[datum])
+	for testItem in test:
+		newTest[testItem] = le.fit_transform(test[testItem])
+	tree1 = DecisionTreeClassifier(criterion=impurity,max_depth = mdepth , random_state=42)
+	tree2 = ExtraTreeClassifier(criterion=impurity,max_depth = mdepth , random_state=42)
+	tree3 = RandomForestClassifier(criterion=impurity,max_depth = mdepth , random_state=42)
+	tree1.fit(newData,labels)
+	tree2.fit(newData,labels)
+	tree3.fit(newData,labels)
+	predict1 = tree1.predict(newTest)
+	print("tree1", evaluate(predict1, validation_genres))
+	predict2 = tree2.predict(newTest)
+	print("tree2", evaluate(predict2, validation_genres))
+	predict3 = tree3.predict(newTest)
+	print("tree3", evaluate(predict3, validation_genres))
+	combined_prediction = voting([predict1,predict2,predict3],[1,1,1])
+	return combined_prediction
 
 
 # returns reduced data given n as number of components and method as the reduction algorithm 
